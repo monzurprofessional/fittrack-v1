@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Activity Dashboard</h2>
+
+<h4>Trainer Bookings</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Trainer</th><th>Slot</th><th>Status</th><th>Fine</th></tr>
+    {% for booking in trainer_bookings %}
+    <tr>
+        <td>{{ booking.booking_date }}</td>
+        <td>{{ booking.trainer_name }}</td>
+        <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+        <td>{{ booking.status }}</td>
+        <td>{{ booking.fine_amount }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h4>Attendance History</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Entry</th><th>Exit</th><th>Workout Minutes</th></tr>
+    {% for row in attendance %}
+    <tr><td>{{ row.date }}</td><td>{{ row.entry }}</td><td>{{ row.exit_time }}</td><td>{{ row.workout_minutes }}</td></tr>
+    {% endfor %}
+</table>
+
+<h4>Food Logs</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Food</th><th>Portion</th><th>Calories</th></tr>
+    {% for log in food_logs %}
+    <tr><td>{{ log.log_date }}</td><td>{{ log.food }}</td><td>{{ log.portion }}</td><td>{{ log.calorie }}</td></tr>
+    {% endfor %}
+</table>
+
+<h4>Fines</h4>
+<p>Total outstanding fine: ${{ member.fine }}</p>
+{% endblock %}

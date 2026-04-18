@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Food Calorie Log</h2>
+<form method="post" class="row g-2 mb-4">
+    <div class="col-md-3"><input name="log_date" type="date" class="form-control" value="{{ today }}" required></div>
+    <div class="col-md-4">
+        <select name="food" class="form-select" required>
+            {% for food in foods %}
+                <option value="{{ food.food }}">{{ food.food }} - {{ food.calorie }} cal</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2"><input name="portion" type="number" step="0.25" class="form-control" value="1" required></div>
+    <div class="col-md-2"><button class="btn btn-primary">Add Food</button></div>
+</form>
+
+<h4>Daily Totals</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Total Calories</th></tr>
+    {% for total in totals %}
+    <tr><td>{{ total.log_date }}</td><td>{{ total.total }}</td></tr>
+    {% endfor %}
+</table>
+
+<h4>Logs</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Food</th><th>Portion</th><th>Calories</th></tr>
+    {% for log in logs %}
+    <tr><td>{{ log.log_date }}</td><td>{{ log.food }}</td><td>{{ log.portion }}</td><td>{{ log.calorie }}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

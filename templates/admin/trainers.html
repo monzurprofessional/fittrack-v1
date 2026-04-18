@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Trainers</h2>
+<form method="post" class="row g-2 mb-4">
+    <div class="col-md-2"><input name="username" class="form-control" placeholder="Username" required></div>
+    <div class="col-md-2"><input name="password" class="form-control" placeholder="Password" required></div>
+    <div class="col-md-3"><input name="name" class="form-control" placeholder="Name" required></div>
+    <div class="col-md-2">
+        <select name="gender" class="form-select"><option>Male</option><option>Female</option><option>Other</option></select>
+    </div>
+    <div class="col-md-3"><input name="dob" type="date" class="form-control" required></div>
+    <div class="col-md-3"><input name="specialization" class="form-control" placeholder="Specialization" required></div>
+    <div class="col-md-2"><input name="experience" type="number" class="form-control" placeholder="Experience" required></div>
+    <div class="col-md-2"><button class="btn btn-primary">Add Trainer</button></div>
+</form>
+
+<table class="table table-bordered table-sm">
+    <tr><th>ID</th><th>Username</th><th>Name</th><th>Gender</th><th>Age</th><th>Specialization</th><th>Experience</th></tr>
+    {% for trainer in trainers %}
+    <tr>
+        <td>{{ trainer.trainer_id }}</td>
+        <td>{{ trainer.username }}</td>
+        <td>{{ trainer.name }}</td>
+        <td>{{ trainer.gender }}</td>
+        <td>{{ trainer.age }}</td>
+        <td>{{ trainer.specialization }}</td>
+        <td>{{ trainer.experience }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

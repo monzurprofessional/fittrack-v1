@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Membership Plans</h2>
+<form method="post" class="row g-2 mb-4">
+    <div class="col-md-5"><input name="plan_name" class="form-control" placeholder="Plan name" required></div>
+    <div class="col-md-3"><input name="plan_price" type="number" step="0.01" class="form-control" placeholder="Price" required></div>
+    <div class="col-md-2"><button class="btn btn-primary">Add Plan</button></div>
+</form>
+
+<table class="table table-bordered table-sm">
+    <tr><th>ID</th><th>Name</th><th>Price</th></tr>
+    {% for plan in plans %}
+    <tr><td>{{ plan.plan_id }}</td><td>{{ plan.plan_name }}</td><td>{{ plan.plan_price }}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

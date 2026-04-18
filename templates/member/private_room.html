@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Private Room Booking</h2>
+<form method="get" class="row g-2 mb-4">
+    <div class="col-md-3"><input name="booking_date" type="date" class="form-control" value="{{ selected_date }}" required></div>
+    <div class="col-md-2"><button class="btn btn-secondary">Show Slots</button></div>
+</form>
+
+<form method="post" class="row g-2 mb-4">
+    <input type="hidden" name="booking_date" value="{{ selected_date }}">
+    <div class="col-md-4">
+        <select name="slot_id" class="form-select" required>
+            {% for slot in slots %}
+                <option value="{{ slot.slot_id }}">{{ slot.start_time }} - {{ slot.end_time }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-primary">Book Room</button></div>
+</form>
+<p>Only private room slots available on {{ selected_date }} are listed.</p>
+
+<h4>My Private Room Bookings</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Slot</th></tr>
+    {% for booking in bookings %}
+    <tr><td>{{ booking.booking_date }}</td><td>{{ booking.start_time }} - {{ booking.end_time }}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

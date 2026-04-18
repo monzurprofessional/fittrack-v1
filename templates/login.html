@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <h2 class="mb-3">FitTrack Login</h2>
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label">Role</label>
+                <select name="role" class="form-select" required>
+                    <option value="admin">Admin</option>
+                    <option value="member">Member</option>
+                    <option value="trainer">Trainer</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input name="username" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input name="password" type="password" class="form-control" required>
+            </div>
+            <button class="btn btn-primary">Login</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

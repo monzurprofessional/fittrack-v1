@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Member Dashboard</h2>
+<p>Welcome, {{ member.name }}.</p>
+
+<div class="row mb-4">
+    <div class="col-md-3"><div class="border p-3">Base Calorie Limit: {{ member.daily_calorie_limit }}</div></div>
+    <div class="col-md-3"><div class="border p-3">Latest Workout: {{ workout_minutes }} min</div></div>
+    <div class="col-md-3"><div class="border p-3">Dynamic Limit: {{ dynamic_limit }}</div></div>
+    <div class="col-md-3"><div class="border p-3">Today Intake: {{ total_calories }}</div></div>
+</div>
+
+{% if calorie_change > 0 %}
+    <div class="alert alert-success">Reward: workout exceeded the expected duration. Calorie limit increased by {{ calorie_change }}.</div>
+{% elif calorie_change < 0 %}
+    <div class="alert alert-warning">Penalty: workout was below the expected duration. Calorie limit changed by {{ calorie_change }}.</div>
+{% else %}
+    <div class="alert alert-info">Workout matched the expected calorie rule.</div>
+{% endif %}
+
+<h4>Fine Balance</h4>
+<p>${{ member.fine }} will be added to the next month payment.</p>
+
+{% if attendance %}
+<h4>Latest Attendance</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Entry</th><th>Exit</th><th>Duration</th></tr>
+    <tr><td>{{ attendance.date }}</td><td>{{ attendance.entry }}</td><td>{{ attendance.exit_time }}</td><td>{{ workout_minutes }} min</td></tr>
+</table>
+{% endif %}
+{% endblock %}

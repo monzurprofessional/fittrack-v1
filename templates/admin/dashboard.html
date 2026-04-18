@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Admin Dashboard</h2>
+<div class="row my-3">
+    <div class="col"><div class="border p-3">Members: {{ stats.members }}</div></div>
+    <div class="col"><div class="border p-3">Trainers: {{ stats.trainers }}</div></div>
+    <div class="col"><div class="border p-3">Bookings: {{ stats.bookings }}</div></div>
+    <div class="col"><div class="border p-3">Outstanding Fines: ${{ stats.fines }}</div></div>
+</div>
+
+<h4>Recent Trainer Bookings</h4>
+<table class="table table-bordered table-sm">
+    <tr>
+        <th>Date</th><th>Member</th><th>Trainer</th><th>Slot</th><th>Status</th><th>Fine</th>
+    </tr>
+    {% for booking in bookings %}
+    <tr>
+        <td>{{ booking.booking_date }}</td>
+        <td>{{ booking.member_name }}</td>
+        <td>{{ booking.trainer_name }}</td>
+        <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+        <td>{{ booking.status }}</td>
+        <td>{{ booking.fine_amount }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

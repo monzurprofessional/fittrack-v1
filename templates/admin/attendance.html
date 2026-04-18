@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Attendance</h2>
+<form method="post" class="row g-2 mb-4">
+    <div class="col-md-3">
+        <select name="member_id" class="form-select" required>
+            {% for member in members %}
+                <option value="{{ member.member_id }}">{{ member.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2"><input name="date" type="date" class="form-control" required></div>
+    <div class="col-md-2"><input name="entry" type="time" class="form-control" required></div>
+    <div class="col-md-2"><input name="exit_time" type="time" class="form-control" required></div>
+    <div class="col-md-2"><button class="btn btn-primary">Save</button></div>
+</form>
+
+<table class="table table-bordered table-sm">
+    <tr><th>Member</th><th>Date</th><th>Entry</th><th>Exit</th></tr>
+    {% for row in attendance %}
+    <tr><td>{{ row.name }}</td><td>{{ row.date }}</td><td>{{ row.entry }}</td><td>{{ row.exit_time }}</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

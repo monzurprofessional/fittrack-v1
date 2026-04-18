@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Trainer Dashboard</h2>
+<p>Today schedule for {{ trainer.name }}.</p>
+
+<table class="table table-bordered table-sm">
+    <tr><th>Member</th><th>Date</th><th>Slot</th><th>Status</th><th>Fine</th></tr>
+    {% for booking in bookings %}
+    <tr>
+        <td>{{ booking.member_name }}</td>
+        <td>{{ booking.booking_date }}</td>
+        <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+        <td>{{ booking.status }}</td>
+        <td>{{ booking.fine_amount }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">No sessions today.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

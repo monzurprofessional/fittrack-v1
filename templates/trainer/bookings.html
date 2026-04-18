@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Bookings</h2>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Member</th><th>Slot</th><th>Status</th><th>Fine</th><th>Update</th></tr>
+    {% for booking in bookings %}
+    <tr>
+        <td>{{ booking.booking_date }}</td>
+        <td>{{ booking.member_name }}</td>
+        <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
+        <td>{{ booking.status }}</td>
+        <td>{{ booking.fine_amount }}</td>
+        <td>
+            <form method="post" class="row g-1">
+                <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
+                <div class="col">
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="completed">completed</option>
+                        <option value="missed">missed</option>
+                    </select>
+                </div>
+                <div class="col"><input name="fine_amount" type="number" step="0.01" class="form-control form-control-sm" placeholder="Fine if missed"></div>
+                <div class="col"><button class="btn btn-sm btn-primary">Save</button></div>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
