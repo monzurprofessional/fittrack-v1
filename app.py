@@ -81,6 +81,62 @@ def update_booking_status(booking_id, status, fine_amount):
     )
 
 
+def get_dynamic_calorie_data(member):
+    attendance = query(
+        """
+        SELECT *,
+               CASE
+                   WHEN exit_time >= entry
+                   THEN TIMESTAMPDIFF(MINUTE, entry, exit_time)
+                   ELSE TIMESTAMPDIFF(MINUTE, entry, exit_time) + 1440
+               END AS workout_minutes
+        FROM attendance
+        WHERE member_id = %s
+        ORDER BY date DESC
+        LIMIT 1
+        """,
+        (member["member_id"],),
+        one=True,
+    )
+    workout_minutes = attendance["workout_minutes"] if attendance and attendance["workout_minutes"] else 0
+    workout_hours = round(workout_minutes / 60, 1)
+    difference = workout_minutes - member["expected_workout_minutes"]
+    calorie_change = int(difference / 15) * 200
+    yesterday_calories = query(
+        """
+        SELECT COALESCE(SUM(calorie), 0) AS total
+        FROM logs
+        WHERE member_id = %s AND log_date = DATE_SUB(CURDATE(), INTERVAL 1 DAY)
+        """,
+        (member["member_id"],),
+        one=True,
+    )["total"]
+    carryover_calories = max(0, member["daily_calorie_limit"] - yesterday_calories)
+    dynamic_limit = max(0, member["daily_calorie_limit"] + calorie_change + carryover_calories)
+    total_calories = query(
+        """
+        SELECT COALESCE(SUM(calorie), 0) AS total
+        FROM logs
+        WHERE member_id = %s AND log_date = CURDATE()
+        """,
+        (member["member_id"],),
+        one=True,
+    )["total"]
+
+    return {
+        "attendance": attendance,
+        "workout_minutes": workout_minutes,
+        "workout_hours": workout_hours,
+        "expected_workout_minutes": member["expected_workout_minutes"],
+        "workout_difference": difference,
+        "calorie_change": calorie_change,
+        "yesterday_calories": yesterday_calories,
+        "carryover_calories": carryover_calories,
+        "dynamic_limit": dynamic_limit,
+        "total_calories": total_calories,
+    }
+
+
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -358,39 +414,23 @@ def trainer_bookings():
 @login_required("member")
 def member_dashboard():
     member = current_member()
-    attendance = query(
-        """
-        SELECT *,
-               TIMESTAMPDIFF(MINUTE, entry, exit_time) AS workout_minutes
-        FROM attendance
-        WHERE member_id = %s
-        ORDER BY date DESC
-        LIMIT 1
-        """,
-        (member["member_id"],),
-        one=True,
-    )
-    workout_minutes = attendance["workout_minutes"] if attendance and attendance["workout_minutes"] else 0
-    difference = workout_minutes - member["expected_workout_minutes"]
-    calorie_change = int(difference / 15) * 200
-    dynamic_limit = max(0, member["daily_calorie_limit"] + calorie_change)
-    total_calories = query(
-        """
-        SELECT COALESCE(SUM(calorie), 0) AS total
-        FROM logs
-        WHERE member_id = %s AND log_date = CURDATE()
-        """,
-        (member["member_id"],),
-        one=True,
-    )["total"]
+    calorie_data = get_dynamic_calorie_data(member)
     return render_template(
         "member/dashboard.html",
         member=member,
-        attendance=attendance,
-        workout_minutes=workout_minutes,
-        dynamic_limit=dynamic_limit,
-        calorie_change=calorie_change,
-        total_calories=total_calories,
+        **calorie_data,
+    )
+
+
+@app.route("/member/dynamic-calorie-limit")
+@login_required("member")
+def member_dynamic_calorie_limit():
+    member = current_member()
+    calorie_data = get_dynamic_calorie_data(member)
+    return render_template(
+        "member/dynamic_calorie_limit.html",
+        member=member,
+        **calorie_data,
     )
 
 
@@ -619,7 +659,15 @@ def member_activity():
     )
     attendance = query(
         """
-        SELECT *, TIMESTAMPDIFF(MINUTE, entry, exit_time) AS workout_minutes
+        SELECT *,
+               ROUND(
+                   CASE
+                       WHEN exit_time >= entry
+                       THEN TIMESTAMPDIFF(MINUTE, entry, exit_time)/60
+                       ELSE (TIMESTAMPDIFF(MINUTE, entry, exit_time) + 1440) / 60
+                   END,
+                   1
+               ) AS workout_hours
         FROM attendance
         WHERE member_id = %s
         ORDER BY date DESC

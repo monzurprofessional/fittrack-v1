@@ -7,9 +7,13 @@
 <div class="row mb-4">
     <div class="col-md-3"><div class="border p-3">Base Calorie Limit: {{ member.daily_calorie_limit }}</div></div>
     <div class="col-md-3"><div class="border p-3">Latest Workout: {{ workout_minutes }} min</div></div>
-    <div class="col-md-3"><div class="border p-3">Dynamic Limit: {{ dynamic_limit }}</div></div>
+    <div class="col-md-3"><div class="border p-3">Carry Over: {{ carryover_calories }}</div></div>
     <div class="col-md-3"><div class="border p-3">Today Intake: {{ total_calories }}</div></div>
 </div>
+<div class="row mb-4">
+    <div class="col-md-3"><div class="border p-3">Dynamic Limit: {{ dynamic_limit }}</div></div>
+</div>
+<a class="btn btn-outline-primary mb-4" href="{{ url_for('member_dynamic_calorie_limit') }}">View Dynamic Calorie Limit Details</a>
 
 {% if calorie_change > 0 %}
     <div class="alert alert-success">Reward: workout exceeded the expected duration. Calorie limit increased by {{ calorie_change }}.</div>
@@ -17,6 +21,10 @@
     <div class="alert alert-warning">Penalty: workout was below the expected duration. Calorie limit changed by {{ calorie_change }}.</div>
 {% else %}
     <div class="alert alert-info">Workout matched the expected calorie rule.</div>
+{% endif %}
+
+{% if carryover_calories > 0 %}
+    <div class="alert alert-success">Unused calories from yesterday increased today's limit by {{ carryover_calories }}.</div>
 {% endif %}
 
 <h4>Fine Balance</h4>

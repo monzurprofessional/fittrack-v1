@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dynamic Calorie Limit</h2>
+<p>{{ member.name }}</p>
+
+<div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+    <div class="col">
+        <div class="border bg-info-subtle p-4 h-100">
+            <h5>Base Calorie Limit</h5>
+            <div class="fs-3">{{ member.daily_calorie_limit }}</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-success-subtle p-4 h-100">
+            <h5>Consumed Yesterday</h5>
+            <div class="fs-3">{{ yesterday_calories }}</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-warning-subtle p-4 h-100">
+            <h5>Carry Over</h5>
+            <div class="fs-3">{{ carryover_calories }}</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-primary-subtle p-4 h-100">
+            <h5>Workout Hours</h5>
+            <div class="fs-3">{{ workout_hours }}</div>
+            <div>{{ workout_minutes }} minutes</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-secondary-subtle p-4 h-100">
+            <h5>Expected Workout</h5>
+            <div class="fs-3">{{ expected_workout_minutes }} min</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-danger-subtle p-4 h-100">
+            <h5>Workout Change</h5>
+            <div class="fs-3">{{ calorie_change }}</div>
+            <div>{{ workout_difference }} minutes difference</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-light p-4 h-100">
+            <h5>Today Intake</h5>
+            <div class="fs-3">{{ total_calories }}</div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="border bg-success-subtle p-4 h-100">
+            <h5>Final Dynamic Limit</h5>
+            <div class="fs-3">{{ dynamic_limit }}</div>
+        </div>
+    </div>
+</div>
+
+<h4>Calculation</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Part</th><th>Value</th></tr>
+    <tr><td>Base calorie limit</td><td>{{ member.daily_calorie_limit }}</td></tr>
+    <tr><td>Yesterday unused calories</td><td>{{ carryover_calories }}</td></tr>
+    <tr><td>Workout calorie change</td><td>{{ calorie_change }}</td></tr>
+    <tr><td>Final dynamic limit</td><td>{{ dynamic_limit }}</td></tr>
+</table>
+
+{% if attendance %}
+<h4>Latest Attendance Used</h4>
+<table class="table table-bordered table-sm">
+    <tr><th>Date</th><th>Entry</th><th>Exit</th><th>Duration</th></tr>
+    <tr>
+        <td>{{ attendance.date }}</td>
+        <td>{{ attendance.entry }}</td>
+        <td>{{ attendance.exit_time }}</td>
+        <td>{{ workout_hours }} hours</td>
+    </tr>
+</table>
+{% endif %}
+{% endblock %}

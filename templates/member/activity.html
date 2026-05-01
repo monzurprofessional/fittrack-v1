@@ -19,9 +19,9 @@
 
 <h4>Attendance History</h4>
 <table class="table table-bordered table-sm">
-    <tr><th>Date</th><th>Entry</th><th>Exit</th><th>Workout Minutes</th></tr>
+    <tr><th>Date</th><th>Entry</th><th>Exit</th><th>Workout Hours</th></tr>
     {% for row in attendance %}
-    <tr><td>{{ row.date }}</td><td>{{ row.entry }}</td><td>{{ row.exit_time }}</td><td>{{ row.workout_minutes }}</td></tr>
+    <tr><td>{{ row.date }}</td><td>{{ row.entry }}</td><td>{{ row.exit_time }}</td><td>{{ row.workout_hours }}</td></tr>
     {% endfor %}
 </table>
 

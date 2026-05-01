@@ -29,6 +29,7 @@
                 <a class="nav-link" href="{{ url_for('trainer_bookings') }}">Bookings</a>
             {% elif session.get('role') == 'member' %}
                 <a class="nav-link" href="{{ url_for('member_dashboard') }}">Dashboard</a>
+                <a class="nav-link" href="{{ url_for('member_dynamic_calorie_limit') }}">Dynamic Calories</a>
                 <a class="nav-link" href="{{ url_for('member_trainers') }}">Trainers</a>
                 <a class="nav-link" href="{{ url_for('private_room') }}">Private Room</a>
                 <a class="nav-link" href="{{ url_for('member_food') }}">Food Log</a>
