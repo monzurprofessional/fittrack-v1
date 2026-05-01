@@ -2,29 +2,48 @@
 
 {% block content %}
 <h2>Private Room Booking</h2>
-<form method="get" class="row g-2 mb-4">
-    <div class="col-md-3"><input name="booking_date" type="date" class="form-control" value="{{ selected_date }}" required></div>
-    <div class="col-md-2"><button class="btn btn-secondary">Show Slots</button></div>
+<form method="get" class="row g-2 mb-4 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label">Booking Date</label>
+        <input name="booking_date" type="date" class="form-control" value="{{ selected_date }}" required>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-secondary w-100">Show Slots</button>
+    </div>
 </form>
 
-<form method="post" class="row g-2 mb-4">
-    <input type="hidden" name="booking_date" value="{{ selected_date }}">
-    <div class="col-md-4">
-        <select name="slot_id" class="form-select" required>
-            {% for slot in slots %}
-                <option value="{{ slot.slot_id }}">{{ slot.start_time }} - {{ slot.end_time }}</option>
-            {% endfor %}
-        </select>
+<h4>Room Slots</h4>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3 mb-4">
+    {% for slot in slots %}
+    <div class="col">
+        {% if slot.is_booked %}
+        <button class="btn bg-danger-subtle border rounded-0 w-100 p-3 text-start" disabled>
+            <strong>{{ slot.start_label }} - {{ slot.end_label }}</strong><br>
+            Booked
+        </button>
+        {% else %}
+        <form method="post">
+            <input type="hidden" name="booking_date" value="{{ selected_date }}">
+            <input type="hidden" name="slot_id" value="{{ slot.slot_id }}">
+            <button class="btn bg-success-subtle border rounded-0 w-100 p-3 text-start" type="submit">
+                <strong>{{ slot.start_label }} - {{ slot.end_label }}</strong><br>
+                Book Room
+            </button>
+        </form>
+        {% endif %}
     </div>
-    <div class="col-md-2"><button class="btn btn-primary">Book Room</button></div>
-</form>
-<p>Only private room slots available on {{ selected_date }} are listed.</p>
+    {% else %}
+    <div class="col">
+        <p>No private room slots found.</p>
+    </div>
+    {% endfor %}
+</div>
 
 <h4>My Private Room Bookings</h4>
 <table class="table table-bordered table-sm">
     <tr><th>Date</th><th>Slot</th></tr>
     {% for booking in bookings %}
-    <tr><td>{{ booking.booking_date }}</td><td>{{ booking.start_time }} - {{ booking.end_time }}</td></tr>
+    <tr><td>{{ booking.booking_date }}</td><td>{{ booking.start_label }} - {{ booking.end_label }}</td></tr>
     {% endfor %}
 </table>
 {% endblock %}

@@ -2,12 +2,25 @@
 
 {% block content %}
 <h2>Browse Trainers</h2>
-<form method="get" class="row g-2 mb-4">
-    <div class="col-md-2"><input name="booking_date" type="date" class="form-control" value="{{ selected_date }}"></div>
-    <div class="col-md-3"><input name="specialization" class="form-control" placeholder="Specialization" value="{{ filters.specialization }}"></div>
-    <div class="col-md-2"><input name="experience" type="number" class="form-control" placeholder="Min experience" value="{{ filters.experience }}"></div>
-    <div class="col-md-2"><input name="age" type="number" class="form-control" placeholder="Max age" value="{{ filters.age }}"></div>
+<form method="get" class="row g-2 mb-4 align-items-end">
     <div class="col-md-2">
+        <label class="form-label">Date</label>
+        <input name="booking_date" type="date" class="form-control" value="{{ selected_date }}">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">Specialization</label>
+        <input name="specialization" class="form-control" value="{{ filters.specialization }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Min Experience</label>
+        <input name="experience" type="number" class="form-control" value="{{ filters.experience }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Max Age</label>
+        <input name="age" type="number" class="form-control" value="{{ filters.age }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Gender</label>
         <select name="gender" class="form-select">
             <option value="">Any gender</option>
             <option value="Male" {% if filters.gender == 'Male' %}selected{% endif %}>Male</option>
@@ -15,34 +28,34 @@
             <option value="Other" {% if filters.gender == 'Other' %}selected{% endif %}>Other</option>
         </select>
     </div>
-    <div class="col-md-2"><button class="btn btn-primary">Filter</button></div>
-</form>
-
-<table class="table table-bordered table-sm">
-    <tr><th>ID</th><th>Name</th><th>Gender</th><th>Age</th><th>Specialization</th><th>Experience</th></tr>
-    {% for trainer in trainers %}
-    <tr>
-        <td>{{ trainer.trainer_id }}</td>
-        <td>{{ trainer.name }}</td>
-        <td>{{ trainer.gender }}</td>
-        <td>{{ trainer.age }}</td>
-        <td>{{ trainer.specialization }}</td>
-        <td>{{ trainer.experience }} years</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<h3>Book Trainer Slot</h3>
-<form method="post" class="row g-2">
-    <input type="hidden" name="booking_date" value="{{ selected_date }}">
-    <div class="col-md-4">
-        <select name="slot_id" class="form-select" required>
-            {% for slot in slots %}
-                <option value="{{ slot.slot_id }}">Trainer {{ slot.trainer_name }}: {{ slot.start_time }} - {{ slot.end_time }}</option>
-            {% endfor %}
-        </select>
+    <div class="col-md-1">
+        <button class="btn btn-primary w-100">Filter</button>
     </div>
-    <div class="col-md-2"><button class="btn btn-primary">Book</button></div>
 </form>
-<p class="mt-2">Only slots available on {{ selected_date }} are listed.</p>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+    {% for t in trainers %}
+    <div class="col">
+        <div class="ratio ratio-1x1">
+            <div class="card rounded-0 border {% if loop.index0 % 4 == 0 %}bg-info-subtle{% elif loop.index0 % 4 == 1 %}bg-success-subtle{% elif loop.index0 % 4 == 2 %}bg-warning-subtle{% else %}bg-danger-subtle{% endif %}">
+                <div class="card-body d-flex flex-column p-4">
+                    <h4 class="card-title mb-3">{{ t.name }}</h4>
+                    <div class="mb-2">Gender: {{ t.gender }}</div>
+                    <div class="mb-2">Age: {{ t.age }}</div>
+                    <div class="mb-2">Specialization: {{ t.specialization }}</div>
+                    <div class="mb-2">Experience: {{ t.experience }} years</div>
+                    <a class="btn btn-light rounded-0 mt-auto"
+                       href="{{ url_for('member_book_trainer', trainer_id=t.trainer_id, booking_date=selected_date) }}">
+                        Take Appointment
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col">
+        <p>No trainers found.</p>
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}

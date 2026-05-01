@@ -138,7 +138,14 @@ INSERT INTO users (username, password, role) VALUES
 ('trainer2', 'pass123', 'trainer'),
 ('trainer3', 'pass123', 'trainer'),
 ('trainer4', 'pass123', 'trainer'),
-('trainer5', 'pass123', 'trainer');
+('trainer5', 'pass123', 'trainer'),
+('trainer6', 'pass123', 'trainer'),
+('trainer7', 'pass123', 'trainer'),
+('trainer8', 'pass123', 'trainer'),
+('trainer9', 'pass123', 'trainer'),
+('trainer10', 'pass123', 'trainer'),
+('trainer11', 'pass123', 'trainer'),
+('trainer12', 'pass123', 'trainer');
 
 INSERT INTO admin (username) VALUES ('admin1');
 
@@ -168,7 +175,14 @@ INSERT INTO trainer
 ('trainer2', 'Sara Akter', 'Female', '1991-10-02', 'Yoga', 6),
 ('trainer3', 'Imran Karim', 'Male', '1985-01-20', 'Cardio', 10),
 ('trainer4', 'Priya Sen', 'Female', '1993-07-16', 'Pilates', 5),
-('trainer5', 'Mahin Chowdhury', 'Male', '1990-03-06', 'Weight Loss', 7);
+('trainer5', 'Mahin Chowdhury', 'Male', '1990-03-06', 'Weight Loss', 7),
+('trainer6', 'Nadia Rahman', 'Female', '1994-09-21', 'Strength', 4),
+('trainer7', 'Tariq Hasan', 'Male', '1989-12-13', 'CrossFit', 9),
+('trainer8', 'Meera Das', 'Female', '1992-02-28', 'Cardio', 6),
+('trainer9', 'Ahsan Kabir', 'Male', '1987-06-05', 'Bodybuilding', 11),
+('trainer10', 'Sanjida Noor', 'Female', '1995-04-17', 'Zumba', 3),
+('trainer11', 'Rohan Sarker', 'Male', '1991-08-24', 'Rehabilitation', 8),
+('trainer12', 'Elina Gomes', 'Female', '1996-11-09', 'Pilates', 4);
 
 INSERT INTO trainer_slot (trainer_id, start_time, end_time) VALUES
 (1, '08:00:00', '09:00:00'),
@@ -181,7 +195,51 @@ INSERT INTO trainer_slot (trainer_id, start_time, end_time) VALUES
 (4, '11:00:00', '12:00:00'),
 (4, '16:00:00', '17:00:00'),
 (5, '12:00:00', '13:00:00'),
-(5, '19:00:00', '20:00:00');
+(5, '19:00:00', '20:00:00'),
+(6, '08:00:00', '09:00:00'),
+(6, '14:00:00', '15:00:00'),
+(7, '06:00:00', '07:00:00'),
+(7, '18:00:00', '19:00:00'),
+(8, '09:00:00', '10:00:00'),
+(8, '17:00:00', '18:00:00'),
+(9, '10:00:00', '11:00:00'),
+(9, '19:00:00', '20:00:00'),
+(10, '07:00:00', '08:00:00'),
+(10, '16:00:00', '17:00:00'),
+(11, '11:00:00', '12:00:00'),
+(11, '15:00:00', '16:00:00'),
+(12, '12:00:00', '13:00:00'),
+(12, '18:00:00', '19:00:00');
+
+INSERT INTO trainer_slot (trainer_id, start_time, end_time)
+SELECT t.trainer_id, h.start_time, h.end_time
+FROM trainer t
+JOIN (
+    SELECT '06:00:00' AS start_time, '07:00:00' AS end_time UNION ALL
+    SELECT '07:00:00', '08:00:00' UNION ALL
+    SELECT '08:00:00', '09:00:00' UNION ALL
+    SELECT '09:00:00', '10:00:00' UNION ALL
+    SELECT '10:00:00', '11:00:00' UNION ALL
+    SELECT '11:00:00', '12:00:00' UNION ALL
+    SELECT '12:00:00', '13:00:00' UNION ALL
+    SELECT '13:00:00', '14:00:00' UNION ALL
+    SELECT '14:00:00', '15:00:00' UNION ALL
+    SELECT '15:00:00', '16:00:00' UNION ALL
+    SELECT '16:00:00', '17:00:00' UNION ALL
+    SELECT '17:00:00', '18:00:00' UNION ALL
+    SELECT '18:00:00', '19:00:00' UNION ALL
+    SELECT '19:00:00', '20:00:00' UNION ALL
+    SELECT '20:00:00', '21:00:00' UNION ALL
+    SELECT '21:00:00', '22:00:00'
+) h
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM trainer_slot ts
+    WHERE ts.trainer_id = t.trainer_id
+      AND ts.start_time = h.start_time
+      AND ts.end_time = h.end_time
+)
+ORDER BY t.trainer_id, h.start_time;
 
 INSERT INTO trainer_booking (member_id, trainer_id, slot_id, booking_date, status, fine_amount) VALUES
 (1, 1, 1, CURDATE(), 'booked', 0),

@@ -2,24 +2,36 @@
 
 {% block content %}
 <h2>Attendance</h2>
-<form method="post" class="row g-2 mb-4">
+<form method="post" class="row g-2 mb-4 align-items-end">
     <div class="col-md-3">
+        <label class="form-label">Name</label>
         <select name="member_id" class="form-select" required>
             {% for member in members %}
                 <option value="{{ member.member_id }}">{{ member.name }}</option>
             {% endfor %}
         </select>
     </div>
-    <div class="col-md-2"><input name="date" type="date" class="form-control" required></div>
-    <div class="col-md-2"><input name="entry" type="time" class="form-control" required></div>
-    <div class="col-md-2"><input name="exit_time" type="time" class="form-control" required></div>
-    <div class="col-md-2"><button class="btn btn-primary">Save</button></div>
+    <div class="col-md-2">
+        <label class="form-label">Date</label>
+        <input name="date" type="date" class="form-control" value="{{ today }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Entry</label>
+        <input name="entry" type="time" class="form-control" value="{{ now }}">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label">Exit</label>
+        <input name="exit_time" type="time" class="form-control" value="{{ now }}">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary">Save</button>
+    </div>
 </form>
 
 <table class="table table-bordered table-sm">
-    <tr><th>Member</th><th>Date</th><th>Entry</th><th>Exit</th></tr>
-    {% for row in attendance %}
-    <tr><td>{{ row.name }}</td><td>{{ row.date }}</td><td>{{ row.entry }}</td><td>{{ row.exit_time }}</td></tr>
+    <tr><th>Member</th><th>Date</th><th>Entry</th><th>Exit</th><th>Workout Hours</th></tr>
+    {% for a in attendance %}
+    <tr><td>{{ a.name }}</td><td>{{ a.date }}</td><td>{{ a.entry }}</td><td>{{ a.exit_time }}</td><td>{{ a.workout_hours }}</td></tr>
     {% endfor %}
 </table>
 {% endblock %}

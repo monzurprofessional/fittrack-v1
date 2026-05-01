@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from functools import wraps
 import os
 
@@ -230,16 +230,15 @@ def admin_trainers():
     )
     return render_template("admin/trainers.html", trainers=trainers)
 
-
 @app.route("/admin/attendance", methods=["GET", "POST"])
 @login_required("admin")
 def admin_attendance():
     if request.method == "POST":
         id=request.form["member_id"]
-        date=request.form["date"]
+        attendance_date=request.form["date"]
 
         exist=query(
-            "select * from attendance where member_id=%s and date=%s",(id,date),one=True
+            "select * from attendance where member_id=%s and date=%s",(id,attendance_date),one=True
         )
         execute(
             """
@@ -248,22 +247,34 @@ def admin_attendance():
             ON DUPLICATE KEY UPDATE entry=VALUES(entry), exit_time = VALUES(exit_time)
             """,(request.form["member_id"],
                  request.form["date"],
-                 request.form["entry"], request.form["exit_time"],),
+                 request.form["entry"], 
+                 request.form["exit_time"],),
         )
         flash("Attendance saved.")
-        return redirect(url_for("admin_attendance"))
+       
+        return redirect(url_for("admin_attendance" ))
 
     members = query("SELECT member_id, name FROM member ORDER BY name")
     attendance = query(
         """
-        SELECT a.*, m.name
+        SELECT a.*, m.name,
+               ROUND(
+                   CASE
+                       WHEN a.exit_time >= a.entry
+                       THEN TIMESTAMPDIFF(MINUTE, a.entry, a.exit_time) / 60
+                       ELSE (TIMESTAMPDIFF(MINUTE, a.entry, a.exit_time) + 1440) / 60
+                   END,
+                   1
+               ) AS workout_hours
         FROM attendance a
         JOIN member m ON a.member_id = m.member_id
         ORDER BY a.date DESC, m.name
         LIMIT 50
         """
     )
-    return render_template("admin/attendance.html", members=members, attendance=attendance)
+    today = date.today().isoformat()
+    now = datetime.now().strftime("%H:%M")
+    return render_template("admin/attendance.html", members=members, attendance=attendance, today=today, now=now)
 
 
 @app.route("/admin/bookings", methods=["GET", "POST"])
@@ -383,38 +394,9 @@ def member_dashboard():
     )
 
 
-@app.route("/member/trainers", methods=["GET", "POST"])
+@app.route("/member/trainers")
 @login_required("member")
 def member_trainers():
-    member = current_member()
-    if request.method == "POST":
-        slot = query(
-            "SELECT * FROM trainer_slot WHERE slot_id = %s",
-            (request.form["slot_id"],),
-            one=True,
-        )
-        if not slot:
-            flash("Selected slot was not found.")
-            return redirect(url_for("member_trainers"))
-        try:
-            execute(
-                """
-                INSERT INTO trainer_booking (member_id, trainer_id, slot_id, booking_date, status)
-                VALUES (%s, %s, %s, %s, 'booked')
-                """,
-                (
-                    member["member_id"],
-                    slot["trainer_id"],
-                    request.form["slot_id"],
-                    request.form["booking_date"],
-                ),
-            )
-            flash("Trainer session booked.")
-        except Exception:
-            get_db().rollback()
-        flash("That trainer slot is already booked for the selected date.")
-        return redirect(url_for("member_trainers"))
-
     selected_date = request.args.get("booking_date", date.today().isoformat())
     filters = {
         "specialization": request.args.get("specialization", ""),
@@ -437,27 +419,81 @@ def member_trainers():
         sql += " AND gender = %s"
         params.append(filters["gender"])
     trainers = query(sql + " ORDER BY name", tuple(params))
-    slots = query(
-        """
-        SELECT ts.*, t.name AS trainer_name
-        FROM trainer_slot ts
-        JOIN trainer t ON ts.trainer_id = t.trainer_id
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM trainer_booking tb
-            WHERE tb.trainer_id = ts.trainer_id
-              AND tb.slot_id = ts.slot_id
-              AND tb.booking_date = %s
-        )
-        ORDER BY t.name, ts.start_time
-        """,
-        (selected_date,),
-    )
     return render_template(
         "member/trainers.html",
         trainers=trainers,
-        slots=slots,
         filters=filters,
+        selected_date=selected_date,
+    )
+
+
+@app.route("/member/trainers/<int:trainer_id>/book", methods=["GET", "POST"])
+@login_required("member")
+def member_book_trainer(trainer_id):
+    member = current_member()
+    selected_date = request.values.get("booking_date", date.today().isoformat())
+    trainer = query(
+        """
+        SELECT *, TIMESTAMPDIFF(YEAR, dob, CURDATE()) AS age
+        FROM trainer
+        WHERE trainer_id = %s
+        """,
+        (trainer_id,),
+        one=True,
+    )
+    if not trainer:
+        flash("Trainer was not found.")
+        return redirect(url_for("member_trainers"))
+
+    if request.method == "POST":
+        slot = query(
+            "SELECT * FROM trainer_slot WHERE slot_id = %s AND trainer_id = %s",
+            (request.form["slot_id"], trainer_id),
+            one=True,
+        )
+        if not slot:
+            flash("Selected slot was not found.")
+            return redirect(url_for("member_book_trainer", trainer_id=trainer_id, booking_date=selected_date))
+        try:
+            execute(
+                """
+                INSERT INTO trainer_booking (member_id, trainer_id, slot_id, booking_date, status)
+                VALUES (%s, %s, %s, %s, 'booked')
+                """,
+                (
+                    member["member_id"],
+                    trainer_id,
+                    request.form["slot_id"],
+                    selected_date,
+                ),
+            )
+            flash("Trainer session booked.")
+            return redirect(url_for("member_book_trainer", trainer_id=trainer_id, booking_date=selected_date))
+        except Exception:
+            get_db().rollback()
+            flash("That trainer slot is already booked for the selected date.")
+            return redirect(url_for("member_book_trainer", trainer_id=trainer_id, booking_date=selected_date))
+
+    slots = query(
+        """
+        SELECT ts.*,
+               DATE_FORMAT(ts.start_time, '%l:%i %p') AS start_label,
+               DATE_FORMAT(ts.end_time, '%l:%i %p') AS end_label,
+               CASE WHEN tb.booking_id IS NULL THEN 0 ELSE 1 END AS is_booked
+        FROM trainer_slot ts
+        LEFT JOIN trainer_booking tb
+          ON tb.trainer_id = ts.trainer_id
+         AND tb.slot_id = ts.slot_id
+         AND tb.booking_date = %s
+        WHERE ts.trainer_id = %s
+        ORDER BY ts.start_time
+        """,
+        (selected_date, trainer_id),
+    )
+    return render_template(
+        "member/book_trainer.html",
+        trainer=trainer,
+        slots=slots,
         selected_date=selected_date,
     )
 
@@ -484,21 +520,23 @@ def private_room():
     selected_date = request.args.get("booking_date", date.today().isoformat())
     slots = query(
         """
-        SELECT *
+        SELECT ps.*,
+               DATE_FORMAT(ps.start_time, '%l:%i %p') AS start_label,
+               DATE_FORMAT(ps.end_time, '%l:%i %p') AS end_label,
+               CASE WHEN pb.booking_id IS NULL THEN 0 ELSE 1 END AS is_booked
         FROM private_slot ps
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM private_booking pb
-            WHERE pb.slot_id = ps.slot_id
-              AND pb.booking_date = %s
-        )
-        ORDER BY start_time
+        LEFT JOIN private_booking pb
+          ON pb.slot_id = ps.slot_id
+         AND pb.booking_date = %s
+        ORDER BY ps.start_time
         """,
         (selected_date,),
     )
     bookings = query(
         """
-        SELECT pb.*, ps.start_time, ps.end_time
+        SELECT pb.*, ps.start_time, ps.end_time,
+               DATE_FORMAT(ps.start_time, '%l:%i %p') AS start_label,
+               DATE_FORMAT(ps.end_time, '%l:%i %p') AS end_label
         FROM private_booking pb
         JOIN private_slot ps ON pb.slot_id = ps.slot_id
         WHERE pb.member_id = %s

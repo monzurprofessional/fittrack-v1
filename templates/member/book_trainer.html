@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .trainer-summary {
+        background: #d7ecff;
+        border: 1px solid #dee2e6;
+        border-radius: 0;
+        color: #212529;
+        padding: 1rem;
+    }
+
+    .slot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 0.75rem;
+    }
+
+    .slot-box {
+        border: 1px solid #dee2e6;
+        border-radius: 0;
+        color: #212529;
+        min-height: 92px;
+        padding: 0.75rem;
+        width: 100%;
+    }
+
+    .slot-available {
+        background: #dff7e8;
+    }
+
+    .slot-booked {
+        background: #f8d7da;
+        cursor: not-allowed;
+        opacity: 0.85;
+    }
+</style>
+
+<a class="btn btn-outline-secondary mb-3" href="{{ url_for('member_trainers', booking_date=selected_date) }}">Back</a>
+
+<div class="trainer-summary mb-4">
+    <h2 class="mb-2">{{ trainer.name }}</h2>
+    <div>{{ trainer.specialization }} | {{ trainer.experience }} years experience | Age {{ trainer.age }} | {{ trainer.gender }}</div>
+</div>
+
+<form method="get" class="row g-2 mb-4 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label">Booking Date</label>
+        <input name="booking_date" type="date" class="form-control" value="{{ selected_date }}">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Show Slots</button>
+    </div>
+</form>
+
+<h4>Available Slots</h4>
+<div class="slot-grid">
+    {% for slot in slots %}
+        {% if slot.is_booked %}
+        <button class="slot-box slot-booked" disabled>
+            <strong>{{ slot.start_label }} - {{ slot.end_label }}</strong><br>
+            Booked
+        </button>
+        {% else %}
+        <form method="post">
+            <input type="hidden" name="booking_date" value="{{ selected_date }}">
+            <input type="hidden" name="slot_id" value="{{ slot.slot_id }}">
+            <button class="slot-box slot-available" type="submit">
+                <strong>{{ slot.start_label }} - {{ slot.end_label }}</strong><br>
+                Book
+            </button>
+        </form>
+        {% endif %}
+    {% else %}
+    <p>No slots found for this trainer.</p>
+    {% endfor %}
+</div>
+{% endblock %}
