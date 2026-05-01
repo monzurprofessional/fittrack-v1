@@ -12,6 +12,15 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "fittrack-dev-secret")
 app.teardown_appcontext(close_db)
 
 
+@app.route("/")
+def index():
+    return redirect(url_for("login"))
+
+
+
+
+
+
 def login_required(role=None):
     def decorator(view):
         @wraps(view)
@@ -19,7 +28,7 @@ def login_required(role=None):
             if "username" not in session:
                 return redirect(url_for("login"))
             if role and session.get("role") != role:
-                flash("You do not have permission to view that page.")
+                flash("You do not have permission to view this page")
                 return redirect(url_for("login"))
             return view(**kwargs)
 
@@ -62,9 +71,7 @@ def update_booking_status(booking_id, status, fine_amount):
     # Keep member.fine as the current total outstanding fine from missed sessions.
     execute(
         """
-        UPDATE member
-        SET fine = (
-            SELECT COALESCE(SUM(fine_amount), 0)
+        UPDATE member SET fine = (SELECT COALESCE(SUM(fine_amount), 0)
             FROM trainer_booking
             WHERE member_id = %s AND status = 'missed'
         )
@@ -74,9 +81,6 @@ def update_booking_status(booking_id, status, fine_amount):
     )
 
 
-@app.route("/")
-def index():
-    return redirect(url_for("login"))
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -99,11 +103,15 @@ def login():
     return render_template("login.html")
 
 
+# @app.route("/logout")
+# def logout():
+#     session.clear()
+#     return redirect(url_for("login"))
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
-
 
 @app.route("/admin")
 @login_required("admin")
@@ -113,6 +121,7 @@ def admin_dashboard():
         "trainers": query("SELECT COUNT(*) AS total FROM trainer", one=True)["total"],
         "bookings": query("SELECT COUNT(*) AS total FROM trainer_booking", one=True)["total"],
         "fines": query("SELECT COALESCE(SUM(fine), 0) AS total FROM member", one=True)["total"],
+        ##COALESCE(value, default)
     }
     bookings = query(
         """
@@ -226,18 +235,20 @@ def admin_trainers():
 @login_required("admin")
 def admin_attendance():
     if request.method == "POST":
+        id=request.form["member_id"]
+        date=request.form["date"]
+
+        exist=query(
+            "select * from attendance where member_id=%s and date=%s",(id,date),one=True
+        )
         execute(
             """
             INSERT INTO attendance (member_id, date, entry, exit_time)
-            VALUES (%s, %s, %s, %s)
-            ON DUPLICATE KEY UPDATE entry = VALUES(entry), exit_time = VALUES(exit_time)
-            """,
-            (
-                request.form["member_id"],
-                request.form["date"],
-                request.form["entry"],
-                request.form["exit_time"],
-            ),
+            VALUES (%s,%s,%s,%s) 
+            ON DUPLICATE KEY UPDATE entry=VALUES(entry), exit_time = VALUES(exit_time)
+            """,(request.form["member_id"],
+                 request.form["date"],
+                 request.form["entry"], request.form["exit_time"],),
         )
         flash("Attendance saved.")
         return redirect(url_for("admin_attendance"))
@@ -267,17 +278,24 @@ def admin_bookings():
         flash("Booking status updated.")
         return redirect(url_for("admin_bookings"))
 
+    fine_sort = request.args.get("fine_sort", "")
+    order_by = "tb.booking_date DESC, ts.start_time"
+    if fine_sort == "highest":
+        order_by = "tb.fine_amount DESC, tb.booking_date DESC, ts.start_time"
+    elif fine_sort == "lowest":
+        order_by = "tb.fine_amount ASC, tb.booking_date DESC, ts.start_time"
+
     bookings = query(
-        """
+        f"""
         SELECT tb.*, m.name AS member_name, t.name AS trainer_name, ts.start_time, ts.end_time
         FROM trainer_booking tb
         JOIN member m ON tb.member_id = m.member_id
         JOIN trainer t ON tb.trainer_id = t.trainer_id
         JOIN trainer_slot ts ON tb.slot_id = ts.slot_id
-        ORDER BY tb.booking_date DESC, ts.start_time
+        ORDER BY {order_by}
         """
     )
-    return render_template("admin/bookings.html", bookings=bookings)
+    return render_template("admin/bookings.html", bookings=bookings, fine_sort=fine_sort)
 
 
 @app.route("/trainer")

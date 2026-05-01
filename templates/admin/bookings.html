@@ -2,6 +2,13 @@
 
 {% block content %}
 <h2>Trainer Booking Status</h2>
+
+<div class="mb-3">
+    <a class="btn btn-outline-primary {% if fine_sort == 'highest' %}active{% endif %}" href="{{ url_for('admin_bookings', fine_sort='highest') }}">Highest Fine</a>
+    <a class="btn btn-outline-primary {% if fine_sort == 'lowest' %}active{% endif %}" href="{{ url_for('admin_bookings', fine_sort='lowest') }}">Lowest Fine</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('admin_bookings') }}">Clear</a>
+</div>
+
 <table class="table table-bordered table-sm">
     <tr>
         <th>Date</th><th>Member</th><th>Trainer</th><th>Slot</th><th>Status</th><th>Fine</th><th>Update</th>

@@ -2,18 +2,48 @@
 
 {% block content %}
 <h2>Trainers</h2>
-<form method="post" class="row g-2 mb-4">
-    <div class="col-md-2"><input name="username" class="form-control" placeholder="Username" required></div>
-    <div class="col-md-2"><input name="password" class="form-control" placeholder="Password" required></div>
-    <div class="col-md-3"><input name="name" class="form-control" placeholder="Name" required></div>
-    <div class="col-md-2">
-        <select name="gender" class="form-select"><option>Male</option><option>Female</option><option>Other</option></select>
-    </div>
-    <div class="col-md-3"><input name="dob" type="date" class="form-control" required></div>
-    <div class="col-md-3"><input name="specialization" class="form-control" placeholder="Specialization" required></div>
-    <div class="col-md-2"><input name="experience" type="number" class="form-control" placeholder="Experience" required></div>
-    <div class="col-md-2"><button class="btn btn-primary">Add Trainer</button></div>
-</form>
+
+<button class="btn btn-primary mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#addTrainerForm" aria-expanded="false" aria-controls="addTrainerForm">
+    Add Trainer
+</button>
+
+<div class="collapse" id="addTrainerForm">
+    <form method="post" class="mb-4" style="max-width: 420px;">
+        <div class="mb-2">
+            <label class="form-label">Username</label>
+            <input name="username" class="form-control" required>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Password</label>
+            <input name="password" class="form-control" required>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Name</label>
+            <input name="name" class="form-control" required>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Gender</label>
+            <select name="gender" class="form-select">
+                <option>Male</option>
+                <option>Female</option>
+                <option>Other</option>
+            </select>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Date of Birth</label>
+            <input name="dob" type="date" class="form-control" required>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Specialization</label>
+            <input name="specialization" class="form-control" required>
+        </div>
+        <div class="mb-2">
+            <label class="form-label">Experience</label>
+            <input name="experience" type="number" class="form-control" required>
+        </div>
+        <div><button class="btn btn-success">Save Trainer</button></div>
+    </form>
+</div>
 
 <table class="table table-bordered table-sm">
     <tr><th>ID</th><th>Username</th><th>Name</th><th>Gender</th><th>Age</th><th>Specialization</th><th>Experience</th></tr>
