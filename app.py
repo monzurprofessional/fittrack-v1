@@ -53,7 +53,7 @@ def current_trainer():
     )
 
 
-def update_booking_status(booking_id, status, fine_amount):
+def update_booking_status(booking_id, status, fine_amount, feedback=None):
     old = query(
         "SELECT member_id, status, fine_amount FROM trainer_booking WHERE booking_id = %s",
         (booking_id,),
@@ -64,8 +64,8 @@ def update_booking_status(booking_id, status, fine_amount):
 
     fine_amount = float(fine_amount or 0) if status == "missed" else 0
     execute(
-        "UPDATE trainer_booking SET status = %s, fine_amount = %s WHERE booking_id = %s",
-        (status, fine_amount, booking_id),
+        "UPDATE trainer_booking SET status = %s, fine_amount = %s, feedback = COALESCE(%s, feedback) WHERE booking_id = %s",
+        (status, fine_amount, feedback, booking_id),
     )
 
     # Keep member.fine as the current total outstanding fine from missed sessions.
@@ -369,18 +369,27 @@ def admin_bookings():
 @login_required("trainer")
 def trainer_dashboard():
     trainer = current_trainer()
-    bookings = query(
+    slots = query(
         """
-        SELECT tb.*, m.name AS member_name, ts.start_time, ts.end_time
-        FROM trainer_booking tb
-        JOIN member m ON tb.member_id = m.member_id
-        JOIN trainer_slot ts ON tb.slot_id = ts.slot_id
-        WHERE tb.trainer_id = %s AND tb.booking_date = CURDATE()
+        SELECT
+            ts.slot_id,
+            DATE_FORMAT(ts.start_time, '%l:%i %p') AS start_label,
+            DATE_FORMAT(ts.end_time, '%l:%i %p') AS end_label,
+            tb.booking_id,
+            m.member_id,
+            m.name AS member_name
+        FROM trainer_slot ts
+        LEFT JOIN trainer_booking tb
+            ON ts.slot_id = tb.slot_id
+            AND ts.trainer_id = tb.trainer_id
+            AND tb.booking_date = CURDATE()
+        LEFT JOIN member m ON tb.member_id = m.member_id
+        WHERE ts.trainer_id = %s
         ORDER BY ts.start_time
         """,
         (trainer["trainer_id"],),
     )
-    return render_template("trainer/dashboard.html", trainer=trainer, bookings=bookings)
+    return render_template("trainer/dashboard.html", trainer=trainer, slots=slots, today=date.today())
 
 
 @app.route("/trainer/bookings", methods=["GET", "POST"])
@@ -392,6 +401,7 @@ def trainer_bookings():
             request.form["booking_id"],
             request.form["status"],
             request.form.get("fine_amount"),
+            request.form.get("feedback"),
         )
         flash("Session status updated.")
         return redirect(url_for("trainer_bookings"))
@@ -410,6 +420,40 @@ def trainer_bookings():
     return render_template("trainer/bookings.html", bookings=bookings)
 
 
+@app.route("/trainer/member/<int:member_id>")
+@login_required("trainer")
+def trainer_view_member(member_id):
+    member = query("SELECT * FROM member WHERE member_id = %s", (member_id,), one=True)
+    if not member:
+        flash("Member not found.")
+        return redirect(url_for("trainer_dashboard"))
+
+    attendance = query(
+        """
+        SELECT *,
+               ROUND(
+                   CASE
+                       WHEN exit_time >= entry
+                       THEN TIMESTAMPDIFF(MINUTE, entry, exit_time)/60
+                       ELSE (TIMESTAMPDIFF(MINUTE, entry, exit_time) + 1440) / 60
+                   END,
+                   1
+               ) AS workout_hours
+        FROM attendance
+        WHERE member_id = %s
+        ORDER BY date DESC
+        LIMIT 10
+        """,
+        (member_id,),
+    )
+
+    return render_template(
+        "trainer/member_profile.html",
+        member=member,
+        attendance=attendance,
+    )
+
+
 @app.route("/member")
 @login_required("member")
 def member_dashboard():
@@ -420,6 +464,23 @@ def member_dashboard():
         member=member,
         **calorie_data,
     )
+
+
+@app.route("/member/inbox")
+@login_required("member")
+def member_inbox():
+    member = current_member()
+    feedbacks = query(
+        """
+        SELECT tb.booking_date, tb.feedback, t.name AS trainer_name
+        FROM trainer_booking tb
+        JOIN trainer t ON tb.trainer_id = t.trainer_id
+        WHERE tb.member_id = %s AND tb.feedback IS NOT NULL AND tb.feedback != ''
+        ORDER BY tb.booking_date DESC
+        """,
+        (member["member_id"],)
+    )
+    return render_template("member/inbox.html", member=member, feedbacks=feedbacks)
 
 
 @app.route("/member/dynamic-calorie-limit")
@@ -692,5 +753,8 @@ def member_activity():
 ## this is a test to test git @monzur.ghumay
 ## nuzhaat
 
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

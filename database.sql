@@ -75,6 +75,7 @@ CREATE TABLE trainer_booking (
     booking_date DATE NOT NULL,
     status ENUM('booked', 'completed', 'missed') NOT NULL DEFAULT 'booked',
     fine_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    feedback TEXT,
     FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE CASCADE,
     FOREIGN KEY (trainer_id) REFERENCES trainer(trainer_id) ON DELETE CASCADE,
     FOREIGN KEY (slot_id) REFERENCES trainer_slot(slot_id) ON DELETE CASCADE,

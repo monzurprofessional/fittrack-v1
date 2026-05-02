@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>My Inbox</h2>
+<div class="card rounded-0 shadow-sm mt-4">
+    <div class="card-header bg-primary text-white rounded-0">
+        <h5 class="mb-0">Messages & Feedback from Trainers</h5>
+    </div>
+    <div class="card-body">
+        {% if feedbacks %}
+            <div class="list-group list-group-flush">
+            {% for f in feedbacks %}
+                <div class="list-group-item px-0">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1 text-primary">From: {{ f.trainer_name }}</h6>
+                        <small class="text-muted">{{ f.booking_date.strftime('%d %b %Y') }}</small>
+                    </div>
+                    <p class="mb-1">{{ f.feedback }}</p>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">No feedback.</p>
+        {% endif %}
+    </div>
+</div>
+<a href="{{ url_for('member_dashboard') }}" class="btn btn-secondary mt-3 rounded-0">Back to Dashboard</a>
+{% endblock %}

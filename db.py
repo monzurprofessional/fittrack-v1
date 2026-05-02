@@ -11,11 +11,11 @@ load_dotenv()
 def get_db():
     if "db" not in g:
         g.db = mysql.connector.connect(
-            host=os.getenv("DB_HOST", "localhost"),
-            port=int(os.getenv("DB_PORT", "3306")),
-            user=os.getenv("DB_USER", ""),
-            password=os.getenv("DB_PASSWORD", ""),
-            database=os.getenv("DB_NAME", ""),
+            host=os.getenv("MYSQLHOST") or os.getenv("DB_HOST", "localhost"),
+            port=int(os.getenv("MYSQLPORT") or os.getenv("DB_PORT", 3306)),
+            user=os.getenv("MYSQLUSER") or os.getenv("DB_USER", ""),
+            password=os.getenv("MYSQLPASSWORD") or os.getenv("DB_PASSWORD", ""),
+            database=os.getenv("MYSQLDATABASE") or os.getenv("DB_NAME", "")
         )
     return g.db
 

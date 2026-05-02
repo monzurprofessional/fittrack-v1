@@ -1,21 +1,32 @@
-{% extends "base.html" %}
+{% extends "trainer/base.html" %}
 
 {% block content %}
-<h2>Trainer Dashboard</h2>
-<p>Today schedule for {{ trainer.name }}.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Today's Schedule</h2>
+    <h4 class="text-muted mb-0">{{ today.strftime("%A, %d %B %Y") }}</h4>
+</div>
 
-<table class="table table-bordered table-sm">
-    <tr><th>Member</th><th>Date</th><th>Slot</th><th>Status</th><th>Fine</th></tr>
-    {% for booking in bookings %}
-    <tr>
-        <td>{{ booking.member_name }}</td>
-        <td>{{ booking.booking_date }}</td>
-        <td>{{ booking.start_time }} - {{ booking.end_time }}</td>
-        <td>{{ booking.status }}</td>
-        <td>{{ booking.fine_amount }}</td>
-    </tr>
-    {% else %}
-    <tr><td colspan="5">No sessions today.</td></tr>
+<div class="row">
+    {% for slot in slots %}
+    <div class="col-md-4 col-lg-3 mb-4">
+        {% if slot.booking_id %}
+            <a href="{{ url_for('trainer_view_member', member_id=slot.member_id) }}" class="text-decoration-none">
+                <div class="card bg-success text-white h-100 shadow-sm rounded-0">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <h5 class="card-title">{{ slot.start_label }} - {{ slot.end_label }}</h5>
+                        <p class="card-text mb-0">Booked by:<br><strong>{{ slot.member_name }}</strong></p>
+                    </div>
+                </div>
+            </a>
+        {% else %}
+            <div class="card bg-light h-100 rounded-0">
+                <div class="card-body text-center d-flex flex-column justify-content-center">
+                    <h5 class="card-title">{{ slot.start_label }} - {{ slot.end_label }}</h5>
+                    <p class="card-text text-muted mb-0">Available</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
     {% endfor %}
-</table>
+</div>
 {% endblock %}
